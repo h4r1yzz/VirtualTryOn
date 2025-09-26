@@ -74,3 +74,6 @@ logs/
 # Temporary files
 *.tmp
 *.temp
+
+# Shell scripts (if any are added)
+*.sh
