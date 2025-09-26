@@ -40,8 +40,8 @@ Backend runs at: http://localhost:8000
 ### 2. Setup Frontend
 ```bash
 cd frontend/my-app
-npm install
-npm run dev
+pnpm install
+pnpm run dev
 ```
 Frontend runs at: http://localhost:3000
 
@@ -87,7 +87,8 @@ FashionNanoBanana/
 │   ├── app/               # Next.js pages
 │   ├── components/        # React components
 │   ├── lib/               # Utilities and state
-│   └── package.json       # Node dependencies
+│   ├── package.json       # Node dependencies
+│   └── pnpm-lock.yaml     # pnpm lockfile
 └── README.md             # This file
 ```
 
@@ -131,7 +132,7 @@ python api.py  # Runs with auto-reload
 ### Frontend Development
 ```bash
 cd frontend/my-app
-npm run dev  # Runs with hot reload
+pnpm run dev  # Runs with hot reload
 ```
 
 ## 📦 Production Deployment
@@ -146,8 +147,8 @@ uvicorn api:app --host 0.0.0.0 --port 8000
 ### Frontend
 ```bash
 cd frontend/my-app
-npm run build
-npm start
+pnpm run build
+pnpm start
 ```
 
 ## 🤝 Contributing
