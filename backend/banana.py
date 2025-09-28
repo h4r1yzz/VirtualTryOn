@@ -1,6 +1,3 @@
-# To run this code you need to install the following dependencies:
-# uv pip install google-genai python-dotenv
-
 import mimetypes
 import os
 import argparse

@@ -1,91 +1,42 @@
 # FashionNanoBanana 🍌👗
 
-AI-powered fashion analysis and product image generation application.
-
-## 🎯 Overview
-
-FashionNanoBanana combines clothing analysis and product image generation using AI. Upload clothing items and model photos to get detailed fashion analysis and generate professional product listing images.
-
-## 🏗️ Architecture
-
-- **Backend**: FastAPI server with Google Gemini AI integration
-- **Frontend**: Next.js 14 with TypeScript and Tailwind CSS
-- **State Management**: Zustand for clean, centralized state
-- **UI Components**: Radix UI with custom styling
+AI-powered fashion analysis and product image generation using Google Gemini AI. Upload clothing items and model photos to get detailed fashion analysis and generate professional product listing images.
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.9+
-- Node.js 18+
-- uv (fast Python package manager)
+- Python 3.9+ with [uv](https://astral.sh/uv/) package manager
+- Node.js 18+ with pnpm
 - Google Gemini API key
 
-Install uv:
-```bash
-# macOS/Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Windows
-powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-### 1. Setup Backend
+### Setup
+1. **Backend**:
 ```bash
 cd backend
 uv venv
 uv pip install -r requirements.txt
+echo "GEMINI_API_KEY=your_gemini_api_key_here" > .env
+uv run python api.py  # Runs at http://localhost:8000
 ```
 
-Create `.env` file:
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-Start backend:
-```bash
-# Option 1: Using the convenience script
-./run.sh
-
-# Option 2: Manual start
-uv run python api.py
-```
-Backend runs at: http://localhost:8000
-
-### 2. Setup Frontend
+2. **Frontend**:
 ```bash
 cd frontend/my-app
 pnpm install
-pnpm run dev
+pnpm run dev  # Runs at http://localhost:3000
 ```
-Frontend runs at: http://localhost:3000
 
-## 📱 Features
+## ✨ Features
 
-### 🔍 AI Clothing Analysis
-- Detailed clothing type, color, material analysis
-- Style recommendations and seasonal suggestions
-- Fashion trend insights
-
-### 🖼️ Product Image Generation
-- Generate professional product listing photos
-- Multiple angles and poses
-- Model wearing the clothing items
-
-### 🎨 Modern UI
-- Responsive design for all devices
-- Real-time feedback and loading states
-- Drag & drop file uploads
-- Beautiful product cards for results
+- **AI Clothing Analysis**: Detailed type, color, material, style, and seasonal analysis
+- **Product Image Generation**: Professional listing photos with multiple angles
+- **Modern UI**: Responsive design with drag & drop uploads and real-time feedback
 
 ## 🎯 Usage
 
-1. **Upload Your Photo**: Add a clear photo of yourself
-2. **Upload Clothing**: Add clothing items to analyze
-3. **Choose Action**:
-   - **Analyze Clothing**: Get AI fashion insights
-   - **Generate Product Images**: Create professional product photos
-4. **View Results**: See analysis and generated images
+1. Upload a clear photo of yourself and clothing items
+2. Choose: **Analyze Clothing** (insights only) or **Generate Product Images** (full workflow)
+3. View AI analysis results and generated professional photos
 
 ## 📁 Project Structure
 
@@ -109,6 +60,11 @@ FashionNanoBanana/
 └── README.md             # This file
 ```
 
+## 🎨 Tech Stack
+
+**Backend**: FastAPI + Google Gemini AI + Pydantic + Uvicorn
+**Frontend**: Next.js 14 + TypeScript + Tailwind CSS + Zustand + Radix UI
+
 ## 🔧 API Endpoints
 
 - `GET /health` - Health check
@@ -116,74 +72,6 @@ FashionNanoBanana/
 - `POST /api/generate` - Full workflow (analysis + images)
 - `GET /static/{filename}` - Serve generated images
 
-## 🎨 Tech Stack
-
-### Backend
-- **FastAPI**: Modern Python web framework
-- **Google Gemini AI**: Advanced image analysis
-- **Pydantic**: Data validation and serialization
-- **Uvicorn**: ASGI server
-
-### Frontend
-- **Next.js 14**: React framework with TypeScript
-- **Tailwind CSS**: Utility-first CSS framework
-- **Zustand**: Lightweight state management
-- **Radix UI**: Accessible component library
-- **Lucide React**: Beautiful icons
-
-## 🔒 Environment Variables
-
-Create `backend/.env`:
-```bash
-GEMINI_API_KEY=your_gemini_api_key_here
-```
-
-## 🧪 Development
-
-### Backend Development
-```bash
-cd backend
-uv run python api.py  # Runs with auto-reload
-```
-
-### Frontend Development
-```bash
-cd frontend/my-app
-pnpm run dev  # Runs with hot reload
-```
-
-## 📦 Production Deployment
-
-### Backend
-```bash
-cd backend
-uv venv
-uv pip install -r requirements.txt
-uv run uvicorn api:app --host 0.0.0.0 --port 8000
-```
-
-### Frontend
-```bash
-cd frontend/my-app
-pnpm run build
-pnpm start
-```
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Test thoroughly
-5. Submit a pull request
-
 ## 📄 License
 
-This project is licensed under the MIT License.
-
-## 🙏 Acknowledgments
-
-- Google Gemini AI for advanced image analysis
-- Radix UI for accessible components
-- Tailwind CSS for beautiful styling
-- Next.js team for the amazing framework
+MIT License
