@@ -1,15 +1,25 @@
-# To run this code you need to install the following dependencies:
-# pip install google-genai python-dotenv
-
 import mimetypes
 import os
 import argparse
+import json
+from typing import List
 from google import genai
 from google.genai import types
+from pydantic import BaseModel
 
 from dotenv import load_dotenv
 load_dotenv()
 
+class ClothingAnalysis(BaseModel):
+    """Structured output for clothing item analysis."""
+    description: str
+    tags: List[str]
+    clothing_type: str
+    color: str
+    texture: str
+    material: str
+    style: str
+    season: str
 
 def save_binary_file(file_name, data):
     f = open(file_name, "wb")
@@ -26,7 +36,77 @@ def load_image_as_bytes(image_path):
         if mime_type is None:
             mime_type = "image/jpeg"  # Default fallback
         return image_data, mime_type
+    
+def analyze_clothing_item(image_path):
+    """
+    Analyze a clothing item image and return structured information about it.
 
+    Args:
+        image_path (str): Path to the clothing item image
+
+    Returns:
+        ClothingAnalysis: Structured analysis of the clothing item
+    """
+    client = genai.Client(
+        api_key=os.environ.get("GEMINI_API_KEY"),
+    )
+
+    # Load the clothing image
+    image_bytes, mime_type = load_image_as_bytes(image_path)
+
+    image = types.Part.from_bytes(
+        data=image_bytes,
+        mime_type=mime_type
+    )
+
+    prompt = """Analyze this clothing item image and provide detailed information about it.
+
+    Please provide the following information in JSON format:
+    {
+        "description": "A detailed description of the clothing item",
+        "tags": ["list", "of", "relevant", "tags", "about", "characteristics"],
+        "clothing_type": "type of clothing (e.g., shirt, pants, dress, hat, etc.)",
+        "color": "primary color of the item",
+        "texture": "texture description (e.g., smooth, rough, knitted, woven)",
+        "material": "material type (e.g., cotton, wool, denim, leather)",
+        "style": "style description (e.g., casual, formal, vintage, modern)",
+        "season": "suitable season (e.g., summer, winter, all-season)"
+    }
+
+    Focus on visible characteristics and provide specific, descriptive tags that would be useful for fashion categorization and search."""
+
+    model = "gemini-2.5-flash"
+
+    response = client.models.generate_content(
+        model=model,
+        contents=[prompt, image],
+    )
+
+    try:
+        # Parse the JSON response
+        response_text = response.text.strip()
+        # Remove markdown code blocks if present
+        if response_text.startswith("```json"):
+            response_text = response_text[7:]
+        if response_text.endswith("```"):
+            response_text = response_text[:-3]
+
+        analysis_data = json.loads(response_text.strip())
+        return ClothingAnalysis(**analysis_data)
+    except (json.JSONDecodeError, Exception) as e:
+        print(f"Error parsing response: {e}")
+        print(f"Raw response: {response.text}")
+        # Return a fallback analysis
+        return ClothingAnalysis(
+            description="Unable to analyze clothing item",
+            tags=["unknown"],
+            clothing_type="unknown",
+            color="unknown",
+            texture="unknown",
+            material="unknown",
+            style="unknown",
+            season="unknown"
+        )
 
 def generate_fashion_product_images(clothing_image_path, model_image_path, output_prefix="product"):
     """
@@ -122,45 +202,60 @@ def get_first_image_in_folder(folder_path):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Generate fashion product listing images")
-    parser.add_argument("--clothing-image", help="Filename of the clothing item image (will look in apparels/ folder)")
-    parser.add_argument("--model-image", help="Filename of the model image (will look in model/ folder)")
-    parser.add_argument("--output-prefix", default="product", help="Prefix for output image files")
-
-    args = parser.parse_args()
-
     # Define folder paths relative to the script location
     script_dir = os.path.dirname(os.path.abspath(__file__))
     apparels_folder = os.path.join(script_dir, "apparels")
     model_folder = os.path.join(script_dir, "model")
 
-    # If no specific images provided, use the first image found in each folder
-    if args.clothing_image:
-        clothing_path = os.path.join(apparels_folder, args.clothing_image)
-    else:
-        clothing_path = get_first_image_in_folder(apparels_folder)
-        if clothing_path:
-            print(f"Using clothing image: {clothing_path}")
+    # Automatically use the first image found in each folder
+    clothing_path = get_first_image_in_folder(apparels_folder)
+    if clothing_path:
+        print(f"Using clothing image: {clothing_path}")
 
-    if args.model_image:
-        model_path = os.path.join(model_folder, args.model_image)
-    else:
-        model_path = get_first_image_in_folder(model_folder)
-        if model_path:
-            print(f"Using model image: {model_path}")
+    model_path = get_first_image_in_folder(model_folder)
+    if model_path:
+        print(f"Using model image: {model_path}")
 
-    # Check if we found valid images
+    # Check if we found valid clothing image
     if not clothing_path or not os.path.exists(clothing_path):
         print("Error: No clothing image found.")
-        print(f"Either specify --clothing-image or place an image file in the '{apparels_folder}' folder.")
+        print(f"Place an image file in the '{apparels_folder}' folder.")
         return
 
+    # Step 1: Analyze the clothing item (always do this first)
+    print("=" * 60)
+    print("STEP 1: ANALYZING CLOTHING ITEM")
+    print("=" * 60)
+    print(f"Analyzing clothing image: {clothing_path}")
+
+    try:
+        clothing_analysis = analyze_clothing_item(clothing_path)
+        print("\n🔍 CLOTHING ANALYSIS RESULTS:")
+        print("-" * 40)
+        print(f"📝 Description: {clothing_analysis.description}")
+        print(f"🏷️  Type: {clothing_analysis.clothing_type}")
+        print(f"🎨 Color: {clothing_analysis.color}")
+        print(f"🧵 Material: {clothing_analysis.material}")
+        print(f"✨ Texture: {clothing_analysis.texture}")
+        print(f"👔 Style: {clothing_analysis.style}")
+        print(f"🌤️  Season: {clothing_analysis.season}")
+        print(f"🏷️  Tags: {', '.join(clothing_analysis.tags)}")
+        print("-" * 40)
+    except Exception as e:
+        print(f"Error analyzing clothing item: {e}")
+        return
+
+    # Step 2: Generate product images
     if not model_path or not os.path.exists(model_path):
-        print("Error: No model image found.")
-        print(f"Either specify --model-image or place an image file in the '{model_folder}' folder.")
+        print("Error: No model image found for product generation.")
+        print(f"Place an image file in the '{model_folder}' folder.")
         return
 
-    generate_fashion_product_images(clothing_path, model_path, args.output_prefix)
+    print("\n" + "=" * 60)
+    print("STEP 2: GENERATING PRODUCT IMAGES")
+    print("=" * 60)
+
+    generate_fashion_product_images(clothing_path, model_path, "product")
 
 
 if __name__ == "__main__":
