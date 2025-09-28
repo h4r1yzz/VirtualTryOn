@@ -127,7 +127,9 @@ def generate_fashion_product_images(clothing_image_path, model_image_path, outpu
 
     model = "gemini-2.5-flash-image-preview"
 
-    prompt = """Create a professional fashion product listing image showing the model wearing the provided clothing item.
+    prompt = """Using the provided images, place [clothing item from the clothing image] onto [model from the model image].
+    Ensure that the features of [model from the model image] remain completely unchanged. The added [clothing item] should integrate naturally and realistically.
+
     Generate a single composite image that shows the model wearing the clothing from 4 different angles:
     1. Front view - model facing forward
     2. Back view - model facing away
@@ -137,7 +139,9 @@ def generate_fashion_product_images(clothing_image_path, model_image_path, outpu
     Arrange these 4 views in a clean, professional grid layout suitable for an e-commerce product listing.
     The background should be clean and neutral (white or light gray).
     Ensure the clothing fits naturally on the model and maintain consistent lighting across all angles.
-    The style should be professional fashion photography suitable for online retail."""
+    The style should be professional fashion photography suitable for online retail.
+
+    Important: Only follow the exact appearance and characteristics shown in the provided images - do not add any additional features or modifications."""
 
     contents = [
         prompt,
