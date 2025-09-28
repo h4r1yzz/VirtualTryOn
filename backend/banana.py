@@ -1,6 +1,5 @@
 import mimetypes
 import os
-import argparse
 import json
 from typing import List
 from google import genai
@@ -108,12 +107,12 @@ def analyze_clothing_item(image_path):
             season="unknown"
         )
 
-def generate_fashion_product_images(clothing_image_path, model_image_path, output_prefix="product"):
+def generate_fashion_product_images(apparel_image_paths, model_image_path, output_prefix="product"):
     """
-    Generate fashion product listing images showing a model wearing clothing from 4 different angles.
+    Generate fashion product listing images showing a model wearing multiple apparel items from 4 different angles.
 
     Args:
-        clothing_image_path (str): Path to the clothing item image
+        apparel_image_paths (list): List of paths to apparel item images (clothing, accessories, etc.)
         model_image_path (str): Path to the model image
         output_prefix (str): Prefix for output image files
     """
@@ -122,13 +121,22 @@ def generate_fashion_product_images(clothing_image_path, model_image_path, outpu
     )
 
     # Load images
-    clothing_bytes, clothing_mime = load_image_as_bytes(clothing_image_path)
+    # Load all apparel images
+    apparel_parts = []
+    for apparel_path in apparel_image_paths:
+        apparel_bytes, apparel_mime = load_image_as_bytes(apparel_path)
+        apparel_parts.append(types.Part.from_bytes(
+            data=apparel_bytes,
+            mime_type=apparel_mime
+        ))
+
+    # Load model image
     model_bytes, model_mime = load_image_as_bytes(model_image_path)
 
     model = "gemini-2.5-flash-image-preview"
 
-    prompt = """Using the provided images, place [clothing item from the clothing image] onto [model from the model image].
-    Ensure that the features of [model from the model image] remain completely unchanged. The added [clothing item] should integrate naturally and realistically.
+    prompt = """Using the provided images, place [apparel items from the apparel images] onto [model from the model image].
+    Ensure that the features of [model from the model image] remain completely unchanged. The added [apparel items] should integrate naturally and realistically, with proper layering and positioning appropriate for each type of item (clothing, accessories, shoes, etc.).
 
     Generate a single composite image that shows the model wearing the clothing from 4 different angles:
     1. Front view - model facing forward
@@ -143,17 +151,13 @@ def generate_fashion_product_images(clothing_image_path, model_image_path, outpu
 
     Important: Only follow the exact appearance and characteristics shown in the provided images - do not add any additional features or modifications."""
 
-    contents = [
-        prompt,
-        types.Part.from_bytes(
-            data=clothing_bytes,
-            mime_type=clothing_mime
-        ),
-        types.Part.from_bytes(
-            data=model_bytes,
-            mime_type=model_mime
-        )
-    ]
+    # Build contents array with prompt, all apparel images, and model image
+    contents = [prompt]
+    contents.extend(apparel_parts)  # Add all apparel image parts
+    contents.append(types.Part.from_bytes(  # Add model image
+        data=model_bytes,
+        mime_type=model_mime
+    ))
 
     generate_content_config = types.GenerateContentConfig(
         response_modalities=[
@@ -190,7 +194,7 @@ def generate_fashion_product_images(clothing_image_path, model_image_path, outpu
             elif part.text:
                 print(part.text)
 
-
+# FOR MODEL
 def get_first_image_in_folder(folder_path):
     """Get the first image file found in the specified folder."""
     if not os.path.exists(folder_path):
@@ -204,6 +208,21 @@ def get_first_image_in_folder(folder_path):
 
     return None
 
+# FOR APPARELS
+def get_all_images_in_folder(folder_path):
+    """Get all image files found in the specified folder."""
+    if not os.path.exists(folder_path):
+        return []
+
+    image_extensions = {'.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp'}
+    image_files = []
+
+    for filename in os.listdir(folder_path):
+        if any(filename.lower().endswith(ext) for ext in image_extensions):
+            image_files.append(os.path.join(folder_path, filename))
+
+    return sorted(image_files)  # Sort for consistent ordering
+
 
 def main():
     # Define folder paths relative to the script location
@@ -211,43 +230,48 @@ def main():
     apparels_folder = os.path.join(script_dir, "apparels")
     model_folder = os.path.join(script_dir, "model")
 
-    # Automatically use the first image found in each folder
-    clothing_path = get_first_image_in_folder(apparels_folder)
-    if clothing_path:
-        print(f"Using clothing image: {clothing_path}")
+    # Get all apparel images from the apparels folder
+    apparel_paths = get_all_images_in_folder(apparels_folder)
+    if apparel_paths:
+        print(f"Found {len(apparel_paths)} apparel item(s):")
+        for i, path in enumerate(apparel_paths, 1):
+            print(f"  {i}. {path}")
 
     model_path = get_first_image_in_folder(model_folder)
     if model_path:
         print(f"Using model image: {model_path}")
 
-    # Check if we found valid clothing image
-    if not clothing_path or not os.path.exists(clothing_path):
-        print("Error: No clothing image found.")
-        print(f"Place an image file in the '{apparels_folder}' folder.")
+    # Check if we found valid apparel images
+    if not apparel_paths:
+        print("Error: No apparel images found.")
+        print(f"Place image files in the '{apparels_folder}' folder.")
         return
 
-    # Step 1: Analyze the clothing item (always do this first)
+    # Step 1: Analyze the apparel items (always do this first)
     print("=" * 60)
-    print("STEP 1: ANALYZING CLOTHING ITEM")
+    print("STEP 1: ANALYZING APPAREL ITEMS")
     print("=" * 60)
-    print(f"Analyzing clothing image: {clothing_path}")
 
-    try:
-        clothing_analysis = analyze_clothing_item(clothing_path)
-        print("\n🔍 CLOTHING ANALYSIS RESULTS:")
-        print("-" * 40)
-        print(f"📝 Description: {clothing_analysis.description}")
-        print(f"🏷️  Type: {clothing_analysis.clothing_type}")
-        print(f"🎨 Color: {clothing_analysis.color}")
-        print(f"🧵 Material: {clothing_analysis.material}")
-        print(f"✨ Texture: {clothing_analysis.texture}")
-        print(f"👔 Style: {clothing_analysis.style}")
-        print(f"🌤️  Season: {clothing_analysis.season}")
-        print(f"🏷️  Tags: {', '.join(clothing_analysis.tags)}")
-        print("-" * 40)
-    except Exception as e:
-        print(f"Error analyzing clothing item: {e}")
-        return
+    apparel_analyses = []
+    for i, apparel_path in enumerate(apparel_paths, 1):
+        print(f"\nAnalyzing apparel item {i}: {apparel_path}")
+        try:
+            apparel_analysis = analyze_clothing_item(apparel_path)
+            apparel_analyses.append(apparel_analysis)
+            print(f"\n🔍 APPAREL ITEM {i} ANALYSIS RESULTS:")
+            print("-" * 40)
+            print(f"📝 Description: {apparel_analysis.description}")
+            print(f"🏷️  Type: {apparel_analysis.clothing_type}")
+            print(f"🎨 Color: {apparel_analysis.color}")
+            print(f"🧵 Material: {apparel_analysis.material}")
+            print(f"✨ Texture: {apparel_analysis.texture}")
+            print(f"👔 Style: {apparel_analysis.style}")
+            print(f"🌤️  Season: {apparel_analysis.season}")
+            print(f"🏷️  Tags: {', '.join(apparel_analysis.tags)}")
+            print("-" * 40)
+        except Exception as e:
+            print(f"Error analyzing apparel item {i}: {e}")
+            return
 
     # Step 2: Generate product images
     if not model_path or not os.path.exists(model_path):
@@ -259,7 +283,7 @@ def main():
     print("STEP 2: GENERATING PRODUCT IMAGES")
     print("=" * 60)
 
-    generate_fashion_product_images(clothing_path, model_path, "product")
+    generate_fashion_product_images(apparel_paths, model_path, "product")
 
 
 if __name__ == "__main__":
