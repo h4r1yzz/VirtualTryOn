@@ -9,8 +9,6 @@ import { Badge } from "@/components/ui/badge"
 import { Upload, User, Shirt, Sparkles, ImageIcon, Trash2, AlertCircle } from "lucide-react"
 import { useFashionStore, UploadedImage } from "@/lib/stores"
 import { FashionAPI, validateImageFile, handleAPIError } from "@/lib/api"
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 import ProductCard from "@/components/ProductCard"
 
 export default function VirtualWardrobePage() {
@@ -80,7 +78,25 @@ export default function VirtualWardrobePage() {
     event.target.value = ''
   }
 
+  const handleAnalyzeOnly = async () => {
+    if (!selectedApparel?.file) {
+      setError("Please select a clothing item to analyze")
+      return
+    }
 
+    setAnalyzing(true)
+    setError(null)
+    clearResults()
+
+    try {
+      const result = await FashionAPI.analyzeClothing(selectedApparel.file)
+      setAnalysisResult(result)
+    } catch (error) {
+      setError(handleAPIError(error))
+    } finally {
+      setAnalyzing(false)
+    }
+  }
 
   const handleGenerateProduct = async () => {
     if (!userImage?.file || !selectedApparel?.file) {
@@ -114,47 +130,6 @@ export default function VirtualWardrobePage() {
       setUserImage(null)
     } else {
       removeApparelItem(id)
-    }
-  }
-
-  const handleViewImage = (imagePath: string) => {
-    // Open the image in a new tab for viewing
-    const fullImageUrl = `${API_BASE_URL}${imagePath}`
-    window.open(fullImageUrl, '_blank')
-  }
-
-  const handleDownloadImage = async (imagePath: string) => {
-    try {
-      // Construct the full image URL
-      const fullImageUrl = `${API_BASE_URL}${imagePath}`
-
-      // Fetch the image as a blob
-      const response = await fetch(fullImageUrl)
-      if (!response.ok) {
-        throw new Error('Failed to fetch image')
-      }
-
-      const blob = await response.blob()
-
-      // Create a download link
-      const url = URL.createObjectURL(blob)
-      const link = document.createElement('a')
-      link.href = url
-
-      // Extract filename from path or create a default one
-      const filename = imagePath.split('/').pop() || 'generated-image.png'
-      link.download = filename
-
-      // Trigger download
-      document.body.appendChild(link)
-      link.click()
-
-      // Cleanup
-      document.body.removeChild(link)
-      URL.revokeObjectURL(url)
-    } catch (error) {
-      console.error('Failed to download image:', error)
-      setError('Failed to download image. Please try again.')
     }
   }
 
@@ -278,6 +253,28 @@ export default function VirtualWardrobePage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
+              {selectedApparel && (
+                <Button
+                  onClick={handleAnalyzeOnly}
+                  disabled={isAnalyzing}
+                  className="w-full"
+                  variant="outline"
+                  size="lg"
+                >
+                  {isAnalyzing ? (
+                    <>
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      Analyzing...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="mr-2 h-4 w-4" />
+                      Analyze Clothing
+                    </>
+                  )}
+                </Button>
+              )}
+
               {userImage && selectedApparel && (
                 <Button
                   onClick={handleGenerateProduct}
@@ -314,7 +311,7 @@ export default function VirtualWardrobePage() {
                 <Card className="border-blue-200 bg-blue-50">
                   <CardContent className="pt-4">
                     <p className="text-sm text-blue-800">
-                      📸 Upload your photo to generate product images
+                      📸 Upload your photo first to enable product generation
                     </p>
                   </CardContent>
                 </Card>
@@ -385,13 +382,13 @@ export default function VirtualWardrobePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>AI Analysis Results</CardTitle>
-                  <CardDescription>Generate product images to see AI insights and results</CardDescription>
+                  <CardDescription>Upload clothing and click analyze to see AI insights</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="flex aspect-[3/4] flex-col items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/50 text-center">
                     <Sparkles className="mb-4 h-12 w-12 text-muted-foreground" />
-                    <p className="text-sm font-medium text-foreground">No results yet</p>
-                    <p className="text-xs text-muted-foreground">Upload photos and generate product images to get started</p>
+                    <p className="text-sm font-medium text-foreground">No analysis yet</p>
+                    <p className="text-xs text-muted-foreground">Select clothing and click "Analyze" to get started</p>
                   </div>
                 </CardContent>
               </Card>
@@ -399,8 +396,14 @@ export default function VirtualWardrobePage() {
               <ProductCard
                 analysis={analysisResult?.analysis || generationResult?.analysis!}
                 generatedImages={generationResult?.generated_images || []}
-                onViewImage={handleViewImage}
-                onDownloadImage={handleDownloadImage}
+                onViewImage={(imagePath) => {
+                  // TODO: Implement image viewer
+                  console.log('View image:', imagePath)
+                }}
+                onDownloadImage={(imagePath) => {
+                  // TODO: Implement image download
+                  console.log('Download image:', imagePath)
+                }}
               />
             )}
           </div>
