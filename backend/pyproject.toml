@@ -1,0 +1,48 @@
+[project]
+name = "fashion-nano-banana"
+version = "0.1.0"
+description = "AI-powered fashion analysis and product image generation backend"
+authors = [
+    {name = "Fashion Team", email = "team@fashionnanobana.com"}
+]
+requires-python = ">=3.9"
+dependencies = [
+    "google>=3.0.0",
+    "google-genai>=1.37.0",
+    "pydantic>=2.10.0",
+    "fastapi>=0.116.0",
+    "uvicorn[standard]>=0.35.0",
+    "python-multipart>=0.0.20",
+    "aiofiles>=24.1.0",
+    "python-dotenv>=1.1.0",
+    "requests>=2.32.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black>=24.0.0",
+    "isort>=6.0.0",
+    "mypy>=1.14.0",
+    "pytest>=8.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["."]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.isort]
+profile = "black"
+line_length = 88
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true

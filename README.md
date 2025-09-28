@@ -16,14 +16,25 @@ FashionNanoBanana combines clothing analysis and product image generation using 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Python 3.8+
+- Python 3.9+
 - Node.js 18+
+- uv (fast Python package manager)
 - Google Gemini API key
+
+Install uv:
+```bash
+# macOS/Linux
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Windows
+powershell -c "irm https://astral.sh/uv/install.ps1 | iex"
+```
 
 ### 1. Setup Backend
 ```bash
 cd backend
-pip install -r requirements.txt
+uv venv
+uv pip install -r requirements.txt
 ```
 
 Create `.env` file:
@@ -33,7 +44,11 @@ GEMINI_API_KEY=your_gemini_api_key_here
 
 Start backend:
 ```bash
-python api.py
+# Option 1: Using the convenience script
+./run.sh
+
+# Option 2: Manual start
+uv run python api.py
 ```
 Backend runs at: http://localhost:8000
 
@@ -80,6 +95,8 @@ FashionNanoBanana/
 │   ├── api.py              # FastAPI server
 │   ├── banana.py           # Core AI functions
 │   ├── requirements.txt    # Python dependencies
+│   ├── run.sh             # Convenience script to start backend
+│   ├── .venv/             # Virtual environment (created by uv)
 │   ├── apparels/          # Sample clothing images
 │   ├── model/             # Sample model images
 │   └── static/            # Generated images
@@ -126,7 +143,7 @@ GEMINI_API_KEY=your_gemini_api_key_here
 ### Backend Development
 ```bash
 cd backend
-python api.py  # Runs with auto-reload
+uv run python api.py  # Runs with auto-reload
 ```
 
 ### Frontend Development
@@ -140,8 +157,9 @@ pnpm run dev  # Runs with hot reload
 ### Backend
 ```bash
 cd backend
-pip install -r requirements.txt
-uvicorn api:app --host 0.0.0.0 --port 8000
+uv venv
+uv pip install -r requirements.txt
+uv run uvicorn api:app --host 0.0.0.0 --port 8000
 ```
 
 ### Frontend

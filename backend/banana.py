@@ -1,5 +1,5 @@
 # To run this code you need to install the following dependencies:
-# pip install google-genai python-dotenv
+# uv pip install google-genai python-dotenv
 
 import mimetypes
 import os
