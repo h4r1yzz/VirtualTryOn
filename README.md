@@ -88,6 +88,7 @@ FashionNanoBanana/
 │   ├── components/        # React components
 │   ├── lib/               # Utilities and state
 │   └── package.json       # Node dependencies
+├── start_backend.sh       # Backend startup script
 └── README.md             # This file
 ```
 
