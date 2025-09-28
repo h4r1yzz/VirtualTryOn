@@ -18,6 +18,7 @@ export default function VirtualWardrobePage() {
     userImage,
     apparelItems,
     selectedApparel,
+    isAnalyzing,
     isGenerating,
     analysisResult,
     generationResult,
@@ -26,7 +27,9 @@ export default function VirtualWardrobePage() {
     addApparelItem,
     removeApparelItem,
     setSelectedApparel,
+    setAnalyzing,
     setGenerating,
+    setAnalysisResult,
     setGenerationResult,
     setError,
     clearResults
@@ -103,6 +106,14 @@ export default function VirtualWardrobePage() {
       setError(handleAPIError(error))
     } finally {
       setGenerating(false)
+    }
+  }
+
+  const removeImage = (id: string, type: "user" | "apparel") => {
+    if (type === "user") {
+      setUserImage(null)
+    } else {
+      removeApparelItem(id)
     }
   }
 
@@ -349,7 +360,7 @@ export default function VirtualWardrobePage() {
                             e.stopPropagation()
                             removeApparelItem(item.id)
                           }}
-                          className="absolute right-2 top-2 z-10 rounded-full bg-destructive p-1 opacity-0 transition-opacity group-hover:opacity-100"
+                          className="absolute right-2 top-2 rounded-full bg-destructive p-1 opacity-0 transition-opacity group-hover:opacity-100"
                         >
                           <Trash2 className="h-3 w-3 text-destructive-foreground" />
                         </button>
