@@ -248,9 +248,7 @@ def main():
         return
 
     # Step 1: Analyze the apparel items (always do this first)
-    print("=" * 60)
     print("STEP 1: ANALYZING APPAREL ITEMS")
-    print("=" * 60)
 
     apparel_analyses = []
     for i, apparel_path in enumerate(apparel_paths, 1):
